@@ -1,0 +1,78 @@
+# Game Theory Market Competition Problem - README
+
+## Overview
+
+This project models a *Game Theory-based Market Competition Problem* using the *MOEA Framework*. In this scenario, three companies (A, B, and C) make strategic decisions to maximize their respective profits. The competition between companies is modeled using a *profit matrix*, which defines the profit outcome for each company based on their chosen strategies.
+
+### Objective
+
+The goal for each company is to *maximize its profit* by selecting a strategy that considers the actions of the other competing companies. This is a multi-objective optimization problem, where each company aims to maximize its profit while balancing the decisions of others.
+
+## Problem Definition
+
+### Constants
+- profitMatrix: A 3D matrix that represents the profits of each company depending on the strategies chosen by the three companies. The structure is:
+
+
+private static final double[][][] profitMatrix = {
+// A-D, A-N, N-D, N-N
+{{10, 10, 10}, {8, 12, 8}, {9, 11, 9}, {7, 13, 7}},
+{{12, 8, 8}, {10, 10, 10}, {11, 9, 9}, {9, 11, 9}},
+{{9, 9, 10}, {7, 11, 12}, {8, 10, 11}, {6, 12, 13}},
+{{8, 10, 8}, {6, 12, 10}, {7, 11, 11}, {5, 13, 12}}
+};
+
+    This matrix defines the profit outcomes for each company based on the strategy choices of all three companies.
+
+### Decision Variables
+Each company can select one of four strategies:
+1. *A-D*: Aggressive marketing and discounting.
+2. *A-N*: Aggressive marketing with no discounting.
+3. *N-D*: No aggressive marketing but with discounting.
+4. *N-N*: No aggressive marketing and no discounting.
+
+### Objectives
+Each company aims to *maximize its own profit*, which is represented as a negative value (for minimization purposes in the MOEA Framework).
+
+### Strategies
+- *Company A Strategy*: Indexed by 0 (A-D), 1 (A-N), 2 (N-D), and 3 (N-N).
+- *Company B Strategy*: Same strategy index as company A.
+- *Company C Strategy*: Same strategy index as company A and B.
+
+The profits of each company are determined based on the strategies chosen by the other two companies.
+
+## Code Explanation
+
+### MarketCompetitionProblem Class
+
+This class models the Game Theory-based competition problem, where three companies compete to maximize their profits.
+
+- **MarketCompetitionProblem()**: Initializes the problem with 3 decision variables (the strategies of the 3 companies) and 3 objectives (profit for each company).
+
+- **evaluate(Solution solution)**:
+    - Retrieves the strategies selected by each company.
+    - Uses the profitMatrix to determine the profit outcome for each company based on the combination of strategies.
+    - Sets the objectives by maximizing each company's profit (converted to negative for minimization).
+
+- **newSolution()**:
+    - Creates a new solution with 3 decision variables, where each company selects one of 4 strategies.
+    - Initializes the decision variables using the EncodingUtils.newInt(0, 3) method, representing the strategy choice for each company.
+
+## Usage
+
+### Setup
+To run the *Game Theory Market Competition Problem*, you will need:
+1. *MOEA Framework*: Ensure that the MOEA Framework is included in your project dependencies.
+2. *Problem Initialization*: Create an instance of MarketCompetitionProblem to define the problem.
+3. *Optimization Algorithm*: Use an algorithm from the MOEA Framework to solve the problem and optimize the companies' strategies.
+
+### Example Usage
+MarketCompetitionProblem problem = new MarketCompetitionProblem();
+// Use MOEA Framework to solve the problem
+
+### Dependencies
+- *MOEA Framework*: This framework is required to solve the multi-objective optimization problem.
+
+## License
+
+This project is open-source and available under the MIT License.
