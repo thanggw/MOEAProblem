@@ -111,45 +111,67 @@ public class Matching {
     }
 
     private boolean assignHospital(int freePatient, int docIndex) {
-        String[] patientPreferences = preferences[0][freePatient]; // Lấy danh sách ưu tiên của bệnh nhân
-        String[] doctorPreferences = preferences[3][docIndex]; // Lấy danh sách ưu tiên của bác sĩ
+        String[] patientPreferences = preferences[1][freePatient]; // Lấy danh sách ưu tiên của bệnh nhân về bệnh viện
+        String[] doctorPreferences = preferences[3][docIndex]; // Lấy danh sách ưu tiên của bác sĩ về bệnh viện
 
-        // Sử dụng một danh sách để lưu trữ các bệnh viện mà cả bệnh nhân và bác sĩ đều ưa thích
+        // Tìm các bệnh viện mà cả bệnh nhân và bác sĩ đều ưu tiên
         List<String> commonHospitals = new ArrayList<>();
-
-        // Tìm các bệnh viện mà bệnh nhân và bác sĩ đều thích
-        for (String preferredHos : doctorPreferences) {
-            if (Arrays.asList(patientPreferences).contains(preferredHos)) {
-                commonHospitals.add(preferredHos); // Thêm bệnh viện vào danh sách nếu cả hai đều thích
+        for (String hos : patientPreferences) {
+            if (Arrays.asList(doctorPreferences).contains(hos)) {
+                commonHospitals.add(hos);
             }
         }
 
-        // Nếu không có bệnh viện nào được ưa thích bởi cả hai thì trả về false
         if (commonHospitals.isEmpty()) {
-            return false;
+            return false; // Không có bệnh viện chung được ưu tiên
         }
 
-        // Chọn bệnh viện ưu tiên nhất từ danh sách chung
-        String selectedHospital = commonHospitals.get(0); // Mặc định chọn bệnh viện đầu tiên
-        for (String hospital : commonHospitals) {
-            // So sánh thứ tự ưu tiên từ danh sách ưu tiên của bệnh nhân và bác sĩ
-            int patientRank = getIndexInList(hospital, patientPreferences);
-            int doctorRank = getIndexInList(hospital, doctorPreferences);
-            int selectedHospitalRank = getIndexInList(selectedHospital, patientPreferences) + getIndexInList(selectedHospital, doctorPreferences);
+        // Xếp hạng các bệnh viện dựa trên sở thích của cả bệnh nhân và bác sĩ
+        commonHospitals.sort((h1, h2) -> {
+            int patientRank1 = getIndexInList(h1, patientPreferences);
+            int patientRank2 = getIndexInList(h2, patientPreferences);
+            int doctorRank1 = getIndexInList(h1, doctorPreferences);
+            int doctorRank2 = getIndexInList(h2, doctorPreferences);
+            int score1 = patientRank1 + doctorRank1;
+            int score2 = patientRank2 + doctorRank2;
+            return Integer.compare(score1, score2); // Sắp xếp tăng dần dựa trên tổng điểm
+        });
 
-            // Nếu bệnh viện hiện tại có thứ tự ưu tiên tốt hơn thì cập nhật bệnh viện được chọn
-            if (patientRank + doctorRank < selectedHospitalRank) {
-                selectedHospital = hospital;
-            }
-        }
-
-        // Gán bệnh viện cho bệnh nhân
+        // Chọn bệnh viện ưu tiên nhất
+        String selectedHospital = commonHospitals.get(0);
         int hosIndex = getIndexInList(selectedHospital, hospitals);
-        // Cập nhật danh sách hoặc trạng thái cho bệnh viện đã được gán (đảm bảo bạn thực hiện điều này ở nơi khác trong mã)
 
-        // Trả về true cho biết đã gán bệnh viện thành công
-        return true;
+        // Kiểm tra xem bệnh viện đã có cặp nào chưa
+        if (hospitalAccepter[hosIndex] != null) {
+            String[] previousPair = hospitalAccepter[hosIndex].split("-");
+            String prevPatient = previousPair[0];
+            String prevDoctor = previousPair[1];
+
+            // Kiểm tra xem bệnh viện có ưu tiên cặp mới hơn không
+            if (morePreferenceHos(prevPatient, prevDoctor, freePatient, docIndex, hosIndex)) {
+                // Hủy ghép cặp trước
+                updatePreviousMatch(prevPatient, prevDoctor);
+
+                // Ghép cặp mới
+                addTriplet(freePatient, docIndex, hosIndex);
+                return true;
+            }
+        } else {
+            // Nếu bệnh viện chưa có cặp nào, ghép cặp mới
+            addTriplet(freePatient, docIndex, hosIndex);
+            return true;
+        }
+
+        return false;
     }
+
+    private boolean morePreferenceHos(String prevPa, String prevDoc, int newPa, int newDoc, int hosIndex) {
+        // So sánh thứ hạng của cặp hiện tại và cặp mới trong danh sách ưu tiên của bệnh viện
+        int currentRank = getIndexInList(prevPa, preferences[4][hosIndex]) + getIndexInList(prevDoc, preferences[5][hosIndex]);
+        int newRank = getIndexInList(patients[newPa], preferences[4][hosIndex]) + getIndexInList(doctors[newDoc], preferences[5][hosIndex]);
+        return newRank < currentRank; // Cặp mới ưu tiên hơn nếu tổng điểm nhỏ hơn
+    }
+
 
 
     private void addTriplet(int freePatient, int docIndex, int hosIndex) {
