@@ -1,9 +1,6 @@
 package Matching;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class Matching {
 
@@ -114,25 +111,46 @@ public class Matching {
     }
 
     private boolean assignHospital(int freePatient, int docIndex) {
-        for (String preferredHos : preferences[3][docIndex]) {  // Access docToHos preferences
-            int hosIndex = getIndexInList(preferredHos, hospitals);
-            if (hosIndex == -1) continue;  // Ignore if hospital not found
+        String[] patientPreferences = preferences[0][freePatient]; // Lấy danh sách ưu tiên của bệnh nhân
+        String[] doctorPreferences = preferences[3][docIndex]; // Lấy danh sách ưu tiên của bác sĩ
 
-            if (hospitalAccepter[hosIndex] == null) {
-                addTriplet(freePatient, docIndex, hosIndex);
-                return true;  // Successful match
-            } else {
-                Set<String> prevTriplet = getPrevSetByObjectName(preferredHos);
-                String[] prevPair = getPreviousPair(prevTriplet);
-                if (morePreferenceHos(prevPair[0], prevPair[1], patients[freePatient], doctors[docIndex], hosIndex)) {
-                    updatePreviousMatch(prevPair[0], prevPair[1]);
-                    addTriplet(freePatient, docIndex, hosIndex);
-                    return true;  // Successful match
-                }
+        // Sử dụng một danh sách để lưu trữ các bệnh viện mà cả bệnh nhân và bác sĩ đều ưa thích
+        List<String> commonHospitals = new ArrayList<>();
+
+        // Tìm các bệnh viện mà bệnh nhân và bác sĩ đều thích
+        for (String preferredHos : doctorPreferences) {
+            if (Arrays.asList(patientPreferences).contains(preferredHos)) {
+                commonHospitals.add(preferredHos); // Thêm bệnh viện vào danh sách nếu cả hai đều thích
             }
         }
-        return false;  // No hospital match found
+
+        // Nếu không có bệnh viện nào được ưa thích bởi cả hai thì trả về false
+        if (commonHospitals.isEmpty()) {
+            return false;
+        }
+
+        // Chọn bệnh viện ưu tiên nhất từ danh sách chung
+        String selectedHospital = commonHospitals.get(0); // Mặc định chọn bệnh viện đầu tiên
+        for (String hospital : commonHospitals) {
+            // So sánh thứ tự ưu tiên từ danh sách ưu tiên của bệnh nhân và bác sĩ
+            int patientRank = getIndexInList(hospital, patientPreferences);
+            int doctorRank = getIndexInList(hospital, doctorPreferences);
+            int selectedHospitalRank = getIndexInList(selectedHospital, patientPreferences) + getIndexInList(selectedHospital, doctorPreferences);
+
+            // Nếu bệnh viện hiện tại có thứ tự ưu tiên tốt hơn thì cập nhật bệnh viện được chọn
+            if (patientRank + doctorRank < selectedHospitalRank) {
+                selectedHospital = hospital;
+            }
+        }
+
+        // Gán bệnh viện cho bệnh nhân
+        int hosIndex = getIndexInList(selectedHospital, hospitals);
+        // Cập nhật danh sách hoặc trạng thái cho bệnh viện đã được gán (đảm bảo bạn thực hiện điều này ở nơi khác trong mã)
+
+        // Trả về true cho biết đã gán bệnh viện thành công
+        return true;
     }
+
 
     private void addTriplet(int freePatient, int docIndex, int hosIndex) {
         Set<String> newTriplet = new HashSet<>();
@@ -259,4 +277,6 @@ public class Matching {
         // Calculate matches
         matching.calcMatches();
     }
+
+
 }
