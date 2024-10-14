@@ -2,8 +2,6 @@ package Matching;
 
 import java.util.*;
 
-
-
 public class StableMatchingWithThreeSets {
     public static void main(String[] args) {
         int setSize = 10;  // Tổng số phần tử của mỗi set
@@ -39,4 +37,3 @@ public class StableMatchingWithThreeSets {
         gsa.stableMatching();
     }
 }
-

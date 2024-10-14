@@ -24,7 +24,7 @@ public class Person {
     // Lấy danh sách ưu tiên cho B với padding
     public String getNextPreferenceForB(int padding) {
         if (preferenceIndexB < preferencesForB.size()) {
-            return preferencesForB.get(preferenceIndexB++);  // Chỉ tăng index của preference, padding chỉ dùng để điều chỉnh logic giữa các set
+            return preferencesForB.get(preferenceIndexB++);
         }
         return null;
     }
@@ -32,7 +32,7 @@ public class Person {
     // Lấy danh sách ưu tiên cho C với padding
     public String getNextPreferenceForC(int padding) {
         if (preferenceIndexC < preferencesForC.size()) {
-            return preferencesForC.get(preferenceIndexC++);  // Tương tự với C
+            return preferencesForC.get(preferenceIndexC++);
         }
         return null;
     }
@@ -51,9 +51,5 @@ public class Person {
 
     public void setMatchForC(String match) {
         this.currentMatchC = match;
-    }
-
-    public String getPreferenceForC(int index) {
-        return preferencesForC.get(index);
     }
 }

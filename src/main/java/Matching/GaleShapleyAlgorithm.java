@@ -6,29 +6,24 @@ public class GaleShapleyAlgorithm {
     Map<String, Person> setA;
     Map<String, Person> setB;
     Map<String, Person> setC;
-    int sizeA, sizeB, sizeC;
 
     public GaleShapleyAlgorithm(Map<String, Person> setA, Map<String, Person> setB, Map<String, Person> setC) {
         this.setA = setA;
         this.setB = setB;
         this.setC = setC;
-        this.sizeA = setA.size();
-        this.sizeB = setB.size();
-        this.sizeC = setC.size();
     }
 
     public void stableMatching() {
+        // Giai đoạn 1: Ghép bệnh nhân (A) với bác sĩ (B)
         Queue<Person> freeSetA = new LinkedList<>(setA.values());
         Set<String> unmatchedA = new HashSet<>();
 
         while (!freeSetA.isEmpty()) {
             Person a = freeSetA.poll();
             boolean matchedB = false;
-            boolean matchedC = false;
 
-            // Ghép cặp với B
             while (!matchedB) {
-                String bName = a.getNextPreferenceForB(0);  // Truyền padding = 0 vì không cần bù đắp khi lấy từ set A
+                String bName = a.getNextPreferenceForB(0);  // Truyền padding = 0
                 if (bName == null) {
                     break;
                 }
@@ -48,9 +43,28 @@ public class GaleShapleyAlgorithm {
                 }
             }
 
-            // Ghép cặp với C
+            // Nếu A không ghép được với ai trong B
+            if (!matchedB) {
+                unmatchedA.add(a.name);
+                freeSetA.add(a);
+            }
+        }
+
+        // Giai đoạn 2: Ghép cặp bệnh nhân-bác sĩ với bệnh viện (C)
+        Queue<Person> freeSetPairs = new LinkedList<>(setA.values());
+        while (!freeSetPairs.isEmpty()) {
+            Person a = freeSetPairs.poll();
+            boolean matchedC = false;
+
+            String bName = a.currentMatchB;
+            Person b = setB.get(bName);
+
+            // Tạo danh sách ưu tiên cho cặp bệnh nhân-bác sĩ với bệnh viện
+            List<String> combinedPreferences = new ArrayList<>(a.preferencesForC);
+            combinedPreferences.addAll(b.preferencesForC); // Giả định là cặp này có thể chọn bệnh viện từ cả hai
+
             while (!matchedC) {
-                String cName = a.getNextPreferenceForC(sizeB);  // Truyền padding là kích thước set B
+                String cName = a.getNextPreferenceForC(setB.size());  // Truyền padding là kích thước set B
                 if (cName == null) {
                     break;
                 }
@@ -62,7 +76,7 @@ public class GaleShapleyAlgorithm {
                         a.setMatchForC(cName);
                         matchedC = true;
                     } else if (c.prefersForC(a.name)) {
-                        freeSetA.add(setA.get(c.currentMatchC));
+                        freeSetPairs.add(setA.get(c.currentMatchC));
                         c.setMatchForC(a.name);
                         a.setMatchForC(cName);
                         matchedC = true;
@@ -70,10 +84,10 @@ public class GaleShapleyAlgorithm {
                 }
             }
 
-            // Nếu A không ghép được với ai trong B và C
-            if (!matchedB || !matchedC) {
+            // Nếu A không ghép được với C
+            if (!matchedC) {
                 unmatchedA.add(a.name);
-                freeSetA.add(a);
+                freeSetPairs.add(a);
             }
         }
 
